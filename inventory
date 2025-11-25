@@ -1,0 +1,9 @@
+[rhel8_cis_lab]
+rhel8-cis-lab ansible_host=127.0.0.1 ansible_port=2222
+
+[rhel8_cis_lab:vars]
+ansible_user=ansible
+ansible_password=password
+ansible_become=true
+ansible_become_method=sudo
+
