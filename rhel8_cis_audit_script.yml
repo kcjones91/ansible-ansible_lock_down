@@ -1,0 +1,68 @@
+---
+- name: RHEL8-CIS audit using run_audit.sh
+  hosts: rhel8_cis_lab
+  become: yes
+  gather_facts: yes
+
+  vars:
+    audit_output_dir_remote: "/var/tmp"
+    audit_output_dir_local: "/mnt/c/Users/kjon5/vms/afcu"
+    audit_json_filename: "{{ ansible_hostname }}-rhel8-cis-audit.json"
+
+  tasks:
+    - name: Ensure required packages are installed
+      yum:
+        name:
+          - git
+          - curl
+          - hostname
+          - jq
+        state: present
+
+    - name: Ensure goss binary is installed
+      get_url:
+        url: "https://github.com/goss-org/goss/releases/download/v0.4.4/goss-linux-amd64"
+        dest: /usr/local/bin/goss
+        mode: "0755"
+
+    - name: Clone or update RHEL8-CIS-Audit repo
+      git:
+        repo: "https://github.com/ansible-lockdown/RHEL8-CIS-Audit.git"
+        dest: /opt/RHEL8-CIS-Audit
+        version: "HEAD"
+        force: yes
+
+    - name: Make sure CIS vars file has container-friendly extras
+      blockinfile:
+        path: /opt/RHEL8-CIS-Audit/vars/CIS.yml
+        marker: "# {mark} added by ansible for container audit"
+        block: |
+          machine_uuid: "{{ ansible_facts.machine_id | default('container-lab-uuid') }}"
+          epoch: "{{ lookup('pipe', 'date +%s') }}"
+      notify: rerun-audit
+
+    - name: Run audit script (pre-remediation) to produce JSON
+      command: >
+        /opt/RHEL8-CIS-Audit/run_audit.sh
+        -f json
+        -o {{ audit_output_dir_remote }}/{{ audit_json_filename }}
+      args:
+        chdir: /opt/RHEL8-CIS-Audit
+      register: audit_run
+      changed_when: "'FAILED' in audit_run.stdout or 'FAILED' in audit_run.stderr"
+      failed_when: false
+
+    - name: Show audit script stdout
+      debug:
+        var: audit_run.stdout_lines
+
+    - name: Fetch audit JSON back to control node
+      fetch:
+        src: "{{ audit_output_dir_remote }}/{{ audit_json_filename }}"
+        dest: "{{ audit_output_dir_local }}/"
+        flat: true
+
+  handlers:
+    - name: rerun-audit
+      debug:
+        msg: "CIS.yml updated for container; rerun the play to regenerate audit JSON if needed."
