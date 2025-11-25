@@ -1,0 +1,14 @@
+---
+- name: Apply RHEL 8 CIS baseline
+  hosts: rhel8_cis_lab
+  become: yes
+  gather_facts: yes
+  ignore_errors: true
+
+  vars:
+    rhel8cis_run_audit: true  # or true if you want pre/post audit inline
+    rhel8cis_authselect_custom_profile_name: "my_lab_profile"
+    audit_capture_files_dir: "/mnt/c/Users/kjon5/vms/afcu"
+    audit_output_collection_method: "fetch"
+  roles:
+    - RHEL8-CIS
