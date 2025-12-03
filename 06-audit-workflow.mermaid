@@ -1,0 +1,53 @@
+```mermaid
+flowchart TB
+    subgraph SCHEDULE["📅 Trigger"]
+        CRON["Scheduled Job<br/>(Daily/Weekly)"]
+        MANUAL["Manual Run"]
+        CICD["CI/CD Pipeline"]
+    end
+
+    subgraph ANSIBLE["🔧 Ansible Execution"]
+        PLAY["Playbook<br/>cis-audit-only.yml"]
+        
+        subgraph LINUX_AUDIT["Linux Audit"]
+            GOSS["Goss Tests"]
+            GOSS_OUT["JSON Report"]
+        end
+        
+        subgraph WIN_AUDIT["Windows Audit"]
+            PS["PowerShell Audit"]
+            PS_OUT["JSON Report"]
+        end
+    end
+
+    subgraph COLLECT["📥 Collection"]
+        FETCH["Fetch Reports<br/>to Control Node"]
+        STORE["audit_reports/<br/>├── linux/<br/>└── windows/"]
+    end
+
+    subgraph PROCESS["⚙️ Processing"]
+        PARSE["Parse JSON"]
+        CALC["Calculate<br/>Compliance %"]
+    end
+
+    subgraph OUTPUT["📊 Output"]
+        DASH["Local Dashboard<br/>(HTML)"]
+        DT["Dynatrace<br/>Metrics API"]
+        ALERT["Alerts<br/>(if < threshold)"]
+    end
+
+    CRON & MANUAL & CICD --> PLAY
+    PLAY --> GOSS --> GOSS_OUT
+    PLAY --> PS --> PS_OUT
+    GOSS_OUT & PS_OUT --> FETCH --> STORE
+    STORE --> PARSE --> CALC
+    CALC --> DASH
+    CALC --> DT
+    CALC --> ALERT
+
+    style SCHEDULE fill:#e8f5e9
+    style ANSIBLE fill:#e3f2fd
+    style COLLECT fill:#fff3e0
+    style PROCESS fill:#fce4ec
+    style OUTPUT fill:#f3e5f5
+```

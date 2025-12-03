@@ -1,0 +1,29 @@
+```mermaid
+flowchart LR
+    subgraph SETUP["1️⃣ Setup"]
+        A1["Clone/Download<br/>Project"] --> A2["Configure<br/>terraform.tfvars"]
+        A2 --> A3["docker compose build"]
+    end
+
+    subgraph INFRA["2️⃣ Infrastructure"]
+        B1["terraform init"] --> B2["terraform apply"]
+        B2 --> B3["VMs Created<br/>inventory.ini Generated"]
+    end
+
+    subgraph ANSIBLE["3️⃣ Ansible Setup"]
+        C1[".\setup.cmd"] --> C2["Downloads Roles<br/>• ubuntu22_cis<br/>• win2022_cis"]
+    end
+
+    subgraph HARDEN["4️⃣ Hardening"]
+        D1["Edit group_vars/<br/>Enable/Disable Rules"] --> D2[".\ansible.cmd playbook<br/>--check --diff"]
+        D2 --> D3["Review Changes"]
+        D3 --> D4[".\ansible.cmd playbook<br/>Apply for Real"]
+    end
+
+    SETUP --> INFRA --> ANSIBLE --> HARDEN
+
+    style SETUP fill:#e8f5e9
+    style INFRA fill:#e3f2fd
+    style ANSIBLE fill:#fff3e0
+    style HARDEN fill:#fce4ec
+```

@@ -1,0 +1,40 @@
+```mermaid
+flowchart TB
+    subgraph HOST["🖥️ Windows Host"]
+        CMD["ansible.cmd<br/>Wrapper Script"]
+        SSH_HOST["~/.ssh/<br/>id_rsa, id_rsa.pub"]
+        PROJECT["Project Directory<br/>C:\Users\kjon5\projects\azure-tf-ansible\azure-vms"]
+    end
+
+    subgraph DOCKER["🐳 Docker Container: ansible-azure"]
+        subgraph MOUNTS["Volume Mounts"]
+            M1["/ansible<br/>(project files)"]
+            M2["/root/.ssh<br/>(SSH keys - fixed permissions)"]
+            M3["/etc/ansible/ansible.cfg<br/>(config)"]
+        end
+        
+        subgraph TOOLS["Installed Tools"]
+            ANS["Ansible Core"]
+            PYWINRM["pywinrm"]
+            COLL["Collections<br/>• ansible.windows<br/>• ansible.posix<br/>• community.windows"]
+        end
+
+        ENTRY["entrypoint.sh<br/>Fixes SSH permissions"]
+    end
+
+    subgraph TARGETS["🎯 Remote Targets"]
+        LINUX["🐧 Linux VM<br/>SSH :22"]
+        WIN["🪟 Windows VM<br/>WinRM :5985"]
+    end
+
+    CMD -->|"docker compose run"| DOCKER
+    SSH_HOST -.->|"mounted read-only"| M2
+    PROJECT -.->|"mounted"| M1
+    ENTRY --> TOOLS
+    ANS -->|"SSH"| LINUX
+    ANS & PYWINRM -->|"WinRM/HTTP"| WIN
+
+    style HOST fill:#e1f5fe
+    style DOCKER fill:#fff3e0
+    style TARGETS fill:#e8f5e9
+```

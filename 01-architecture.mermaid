@@ -1,0 +1,29 @@
+```mermaid
+flowchart TB
+    subgraph LOCAL["🖥️ Windows Workstation"]
+        TF[("Terraform")]
+        DC["Docker Container<br/>Ansible + Collections"]
+        FILES["Project Files<br/>• group_vars/<br/>• playbooks<br/>• inventory.ini"]
+    end
+
+    subgraph AZURE["☁️ Azure Cloud"]
+        subgraph RG["Resource Group: rg-demo-vms"]
+            subgraph VNET["Virtual Network: 10.0.0.0/16"]
+                LINUX["🐧 Ubuntu 22.04<br/>vm-linux-demo<br/>SSH :22"]
+                WIN["🪟 Windows Server 2022<br/>vm-win-demo<br/>WinRM :5985 | RDP :3389"]
+            end
+            NSG["Network Security Group<br/>SSH, RDP, WinRM"]
+        end
+    end
+
+    TF -->|"terraform apply"| RG
+    TF -->|"generates"| FILES
+    DC -->|"SSH"| LINUX
+    DC -->|"WinRM"| WIN
+    FILES -->|"mounted"| DC
+
+    style LOCAL fill:#e1f5fe
+    style AZURE fill:#fff3e0
+    style LINUX fill:#c8e6c9
+    style WIN fill:#bbdefb
+```
