@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure + Ansible CIS Hardening - Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--accent));
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .header p { color: var(--text-secondary); font-size: 1.1rem; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .nav-card {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--bg-card);
+        }
+        
+        .nav-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+        
+        .nav-card .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .nav-card h3 { margin-bottom: 0.5rem; color: var(--accent); }
+        .nav-card p { color: var(--text-secondary); font-size: 0.9rem; }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .mermaid-section {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mermaid-section h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .mermaid-section h3::before {
+            content: "📊";
+        }
+        
+        .mermaid {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .file-list {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .file-list h3 { color: var(--accent); margin-bottom: 1rem; }
+        
+        .file-list ul { list-style: none; }
+        
+        .file-list li {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--bg-card);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .file-list li:last-child { border-bottom: none; }
+        
+        .file-list a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .file-list a:hover { text-decoration: underline; }
+        
+        .file-list .desc { color: var(--text-secondary); font-size: 0.85rem; }
+        
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.html { background: #e44d26; }
+        .badge.svg { background: #ff9900; }
+        .badge.md { background: var(--success); }
+        .badge.mermaid { background: #ff3670; }
+        
+        .svg-preview {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .svg-preview img { max-width: 100%; height: auto; }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--bg-card);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Documentation Index</h1>
+        <p>Azure + Terraform + Ansible CIS Hardening</p>
+    </div>
+    
+    <div class="container">
+        <!-- Quick Navigation -->
+        <h2 class="section-title">🚀 Interactive Tools</h2>
+        <div class="nav-grid">
+            <a href="workflow-diagrams.html" class="nav-card">
+                <div class="icon">📊</div>
+                <h3>Workflow Diagrams</h3>
+                <p>All architecture and workflow diagrams in one interactive page</p>
+            </a>
+            <a href="cis-dashboard.html" class="nav-card">
+                <div class="icon">🔒</div>
+                <h3>CIS Compliance Dashboard</h3>
+                <p>Drag & drop JSON audit reports to visualize compliance status</p>
+            </a>
+        </div>
+        
+        <!-- All Files -->
+        <h2 class="section-title">📁 All Documentation Files</h2>
+        <div class="file-list">
+            <h3>HTML Pages</h3>
+            <ul>
+                <li>
+                    <span class="badge html">HTML</span>
+                    <a href="workflow-diagrams.html">workflow-diagrams.html</a>
+                    <span class="desc">— All workflow diagrams with dark theme</span>
+                </li>
+                <li>
+                    <span class="badge html">HTML</span>
+                    <a href="cis-dashboard.html">cis-dashboard.html</a>
+                    <span class="desc">— Interactive compliance dashboard</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="file-list">
+            <h3>Concept Documents</h3>
+            <ul>
+                <li>
+                    <span class="badge md">MD</span>
+                    <a href="concepts-audit-workflow.md">concepts-audit-workflow.md</a>
+                    <span class="desc">— Audit workflow explanation, config options, integration patterns</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="file-list">
+            <h3>Images</h3>
+            <ul>
+                <li>
+                    <span class="badge svg">SVG</span>
+                    <a href="architecture.svg" target="_blank">architecture.svg</a>
+                    <span class="desc">— High-level architecture diagram</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- SVG Preview -->
+        <div class="mermaid-section">
+            <h3>Architecture Diagram (SVG)</h3>
+            <div class="svg-preview">
+                <img src="architecture.svg" alt="Architecture Diagram" onerror="this.parentElement.innerHTML='<p style=color:#666>SVG preview not available</p>'">
+            </div>
+        </div>
+        
+        <!-- Mermaid Diagrams Rendered -->
+        <h2 class="section-title">📊 Mermaid Diagrams</h2>
+        
+        <div class="mermaid-section">
+            <h3>01 - Architecture Overview</h3>
+            <div class="mermaid">
+flowchart TB
+    subgraph LOCAL["🖥️ Windows Workstation"]
+        TF[("Terraform")]
+        DC["Docker Container<br/>Ansible"]
+        FILES["Project Files"]
+    end
+    subgraph AZURE["☁️ Azure Cloud"]
+        subgraph RG["Resource Group"]
+            LINUX["🐧 Ubuntu 22.04<br/>SSH :22"]
+            WIN["🪟 Windows 2022<br/>WinRM :5985"]
+        end
+    end
+    TF -->|"terraform apply"| RG
+    TF -->|"generates"| FILES
+    DC -->|"SSH"| LINUX
+    DC -->|"WinRM"| WIN
+    FILES -->|"mounted"| DC
+            </div>
+        </div>
+        
+        <div class="mermaid-section">
+            <h3>02 - Deployment Workflow</h3>
+            <div class="mermaid">
+flowchart LR
+    subgraph SETUP["1️⃣ Setup"]
+        A1["Clone"] --> A2["Configure"]
+        A2 --> A3["Build"]
+    end
+    subgraph INFRA["2️⃣ Infrastructure"]
+        B1["init"] --> B2["apply"]
+        B2 --> B3["VMs Ready"]
+    end
+    subgraph ANSIBLE["3️⃣ Ansible"]
+        C1["setup.cmd"] --> C2["Roles"]
+    end
+    subgraph HARDEN["4️⃣ Harden"]
+        D1["group_vars"] --> D2["check"]
+        D2 --> D3["apply"]
+    end
+    SETUP --> INFRA --> ANSIBLE --> HARDEN
+            </div>
+        </div>
+        
+        <div class="mermaid-section">
+            <h3>03 - CIS Hardening Flow</h3>
+            <div class="mermaid">
+flowchart TB
+    subgraph CONTROLS["📋 Controls"]
+        GV_L["group_vars/linux.yml"]
+        GV_W["group_vars/windows.yml"]
+    end
+    subgraph PLAY["📄 Playbooks"]
+        PB["cis-hardening-all.yml"]
+    end
+    subgraph ROLES["🔧 Roles"]
+        R_L["ubuntu22_cis"]
+        R_W["win2022_cis"]
+    end
+    subgraph TARGET["🎯 Targets"]
+        T_L["🐧 Linux"]
+        T_W["🪟 Windows"]
+    end
+    GV_L & GV_W --> PB --> R_L & R_W
+    R_L --> T_L
+    R_W --> T_W
+            </div>
+        </div>
+        
+        <div class="mermaid-section">
+            <h3>06 - Audit Workflow</h3>
+            <div class="mermaid">
+flowchart LR
+    subgraph TRIGGER["📅 Trigger"]
+        CRON["Schedule"]
+        MANUAL["Manual"]
+    end
+    subgraph RUN["🔧 Audit"]
+        GOSS["Linux: Goss"]
+        PS["Windows: PS"]
+    end
+    subgraph OUTPUT["📊 Output"]
+        JSON["JSON Reports"]
+        DASH["Dashboard"]
+        DT["Dynatrace"]
+    end
+    CRON & MANUAL --> GOSS & PS --> JSON --> DASH & DT
+            </div>
+        </div>
+        
+        <!-- Raw Mermaid Files -->
+        <div class="file-list">
+            <h3>Raw Mermaid Files</h3>
+            <ul>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="01-architecture.mermaid">01-architecture.mermaid</a>
+                </li>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="02-deployment-workflow.mermaid">02-deployment-workflow.mermaid</a>
+                </li>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="03-cis-hardening-flow.mermaid">03-cis-hardening-flow.mermaid</a>
+                </li>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="04-docker-architecture.mermaid">04-docker-architecture.mermaid</a>
+                </li>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="05-project-structure.mermaid">05-project-structure.mermaid</a>
+                </li>
+                <li>
+                    <span class="badge mermaid">MERMAID</span>
+                    <a href="06-audit-workflow.mermaid">06-audit-workflow.mermaid</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Azure + Terraform + Ansible CIS Hardening Documentation</p>
+    </footer>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#334155',
+                primaryTextColor: '#f1f5f9',
+                primaryBorderColor: '#3b82f6',
+                lineColor: '#3b82f6',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#0f172a'
+            }
+        });
+    </script>
+</body>
+</html>
