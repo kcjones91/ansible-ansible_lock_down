@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS Compliance Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --pass: #22c55e;
+            --fail: #ef4444;
+            --skip: #f59e0b;
+            --info: #3b82f6;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary), #0f172a);
+            padding: 2rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+        
+        .header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .header p { color: var(--text-secondary); }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        .upload-section {
+            background: var(--bg-secondary);
+            border: 2px dashed var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .upload-section:hover { border-color: var(--info); }
+        .upload-section input { display: none; }
+        .upload-section .icon { font-size: 3rem; margin-bottom: 1rem; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .summary-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .summary-card .label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .summary-card.pass .value { color: var(--pass); }
+        .summary-card.fail .value { color: var(--fail); }
+        .summary-card.skip .value { color: var(--skip); }
+        .summary-card.total .value { color: var(--info); }
+        
+        .compliance-meter {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .compliance-meter h2 { margin-bottom: 1rem; }
+        
+        .meter-bar {
+            height: 2rem;
+            background: var(--bg-card);
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            border-radius: 1rem;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .meter-fill.high { background: linear-gradient(90deg, var(--pass), #16a34a); }
+        .meter-fill.medium { background: linear-gradient(90deg, var(--skip), #d97706); }
+        .meter-fill.low { background: linear-gradient(90deg, var(--fail), #dc2626); }
+        
+        .results-section {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .results-section h2 { margin-bottom: 1rem; }
+        
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .filter-btn:hover { background: var(--info); }
+        .filter-btn.active { background: var(--info); }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-card);
+        }
+        
+        .results-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .results-table tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
+        .status-badge.fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+        .status-badge.skip { background: rgba(245, 158, 11, 0.2); color: var(--skip); }
+        
+        .host-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--bg-card);
+            padding-bottom: 0.5rem;
+        }
+        
+        .host-tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .host-tab:hover { color: var(--text-primary); }
+        .host-tab.active {
+            color: var(--info);
+            border-bottom-color: var(--info);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        
+        .demo-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--info);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .demo-btn:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🔒 CIS Compliance Dashboard</h1>
+            <p>Ansible Lockdown Audit Results Viewer</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <label class="upload-section" id="dropZone">
+            <input type="file" id="fileInput" accept=".json" multiple>
+            <div class="icon">📁</div>
+            <p><strong>Drop JSON audit files here</strong> or click to browse</p>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.875rem;">
+                Supports multiple files for multi-host view
+            </p>
+        </label>
+        
+        <div id="dashboard" style="display: none;">
+            <div class="host-tabs" id="hostTabs"></div>
+            
+            <div class="summary-grid" id="summaryGrid">
+                <div class="summary-card total">
+                    <div class="value" id="totalControls">0</div>
+                    <div class="label">Total Controls</div>
+                </div>
+                <div class="summary-card pass">
+                    <div class="value" id="passedControls">0</div>
+                    <div class="label">Passed</div>
+                </div>
+                <div class="summary-card fail">
+                    <div class="value" id="failedControls">0</div>
+                    <div class="label">Failed</div>
+                </div>
+                <div class="summary-card skip">
+                    <div class="value" id="skippedControls">0</div>
+                    <div class="label">Skipped</div>
+                </div>
+            </div>
+            
+            <div class="compliance-meter">
+                <h2>Compliance Score</h2>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="complianceMeter">0%</div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h2>Control Results</h2>
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="pass">✓ Passed</button>
+                    <button class="filter-btn" data-filter="fail">✗ Failed</button>
+                    <button class="filter-btn" data-filter="skip">○ Skipped</button>
+                </div>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Control ID</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Expected</th>
+                            <th>Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="empty-state" id="emptyState">
+            <div class="icon">📊</div>
+            <p>No audit data loaded</p>
+            <p style="margin-top: 0.5rem;">Upload JSON files from Ansible Lockdown audit runs</p>
+            <button class="demo-btn" id="loadDemo">Load Demo Data</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let allReports = {};
+        let currentHost = null;
+        let currentFilter = 'all';
+        
+        // Demo data
+        const demoData = {
+            "vm-linux-demo": {
+                hostname: "vm-linux-demo",
+                os: "Ubuntu 22.04",
+                timestamp: new Date().toISOString(),
+                results: [
+                    { id: "3.3.1", title: "Ensure source routed packets are not accepted", status: "pass", expected: "0", actual: "0" },
+                    { id: "3.3.2", title: "Ensure ICMP redirects are not accepted", status: "pass", expected: "0", actual: "0" },
+                    { id: "3.3.3", title: "Ensure secure ICMP redirects are not accepted", status: "pass", expected: "0", actual: "0" },
+                    { id: "3.3.4", title: "Ensure suspicious packets are logged", status: "fail", expected: "1", actual: "0" },
+                    { id: "3.3.5", title: "Ensure broadcast ICMP requests are ignored", status: "pass", expected: "1", actual: "1" },
+                    { id: "3.3.6", title: "Ensure bogus ICMP responses are ignored", status: "pass", expected: "1", actual: "1" },
+                    { id: "3.3.7", title: "Ensure Reverse Path Filtering is enabled", status: "pass", expected: "1", actual: "1" },
+                    { id: "3.3.8", title: "Ensure TCP SYN Cookies is enabled", status: "pass", expected: "1", actual: "1" },
+                    { id: "3.3.9", title: "Ensure IPv6 router advertisements are not accepted", status: "skip", expected: "0", actual: "N/A" }
+                ],
+                summary: { total: 9, passed: 7, failed: 1, skipped: 1 }
+            },
+            "vm-win-demo": {
+                hostname: "vm-win-demo",
+                os: "Windows Server 2022",
+                timestamp: new Date().toISOString(),
+                results: [
+                    { id: "1.1.2", title: "Ensure 'Maximum password age' is set to '365 or fewer days'", status: "pass", expected: "<=365", actual: "90" },
+                    { id: "1.1.6", title: "Ensure 'Store passwords using reversible encryption' is Disabled", status: "pass", expected: "Disabled", actual: "Disabled" },
+                    { id: "1.2.1", title: "Ensure 'Account lockout duration' is configured", status: "pass", expected: ">=15", actual: "30" },
+                    { id: "1.2.2", title: "Ensure 'Account lockout threshold' is configured", status: "fail", expected: "<=5", actual: "0" },
+                    { id: "17.1.1", title: "Ensure 'Audit Credential Validation' is set to Success and Failure", status: "fail", expected: "Success and Failure", actual: "No Auditing" },
+                    { id: "17.2.5", title: "Ensure 'Audit Security Group Management' includes Success", status: "pass", expected: "Success", actual: "Success" },
+                    { id: "17.2.6", title: "Ensure 'Audit User Account Management' is set to Success and Failure", status: "pass", expected: "Success and Failure", actual: "Success and Failure" },
+                    { id: "17.3.1", title: "Ensure 'Audit PNP Activity' includes Success", status: "pass", expected: "Success", actual: "Success" },
+                    { id: "17.5.1", title: "Ensure 'Audit Account Lockout' includes Failure", status: "pass", expected: "Failure", actual: "Failure" }
+                ],
+                summary: { total: 9, passed: 7, failed: 2, skipped: 0 }
+            }
+        };
+        
+        // DOM elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const dashboard = document.getElementById('dashboard');
+        const emptyState = document.getElementById('emptyState');
+        const hostTabs = document.getElementById('hostTabs');
+        const resultsBody = document.getElementById('resultsBody');
+        
+        // Event listeners
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--info)';
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = 'var(--bg-card)';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--bg-card)';
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        document.getElementById('loadDemo').addEventListener('click', () => {
+            allReports = demoData;
+            currentHost = Object.keys(allReports)[0];
+            renderDashboard();
+        });
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderResults();
+            });
+        });
+        
+        // Functions
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        const hostname = data.hostname || file.name.replace('.json', '');
+                        allReports[hostname] = normalizeReport(data, hostname);
+                        if (!currentHost) currentHost = hostname;
+                        renderDashboard();
+                    } catch (err) {
+                        console.error('Failed to parse JSON:', err);
+                        alert('Invalid JSON file: ' + file.name);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        function normalizeReport(data, hostname) {
+            // Handle different JSON structures (goss vs custom)
+            if (data.results && Array.isArray(data.results)) {
+                // Already normalized or Windows format
+                return {
+                    hostname: hostname,
+                    os: data.os || 'Unknown',
+                    timestamp: data.timestamp || new Date().toISOString(),
+                    results: data.results.map(r => ({
+                        id: r.id || r['resource-id'] || 'N/A',
+                        title: r.title || r['resource-id'] || 'N/A',
+                        status: normalizeStatus(r.status || r.result),
+                        expected: String(r.expected || 'N/A'),
+                        actual: String(r.actual || r.found || 'N/A')
+                    })),
+                    summary: data.summary || calculateSummary(data.results)
+                };
+            }
+            return data;
+        }
+        
+        function normalizeStatus(status) {
+            if (!status) return 'skip';
+            status = status.toLowerCase();
+            if (status === 'success' || status === 'pass' || status === 'passed') return 'pass';
+            if (status === 'failure' || status === 'fail' || status === 'failed') return 'fail';
+            return 'skip';
+        }
+        
+        function calculateSummary(results) {
+            const summary = { total: results.length, passed: 0, failed: 0, skipped: 0 };
+            results.forEach(r => {
+                const status = normalizeStatus(r.status || r.result);
+                if (status === 'pass') summary.passed++;
+                else if (status === 'fail') summary.failed++;
+                else summary.skipped++;
+            });
+            return summary;
+        }
+        
+        function renderDashboard() {
+            emptyState.style.display = 'none';
+            dashboard.style.display = 'block';
+            
+            renderHostTabs();
+            renderSummary();
+            renderResults();
+        }
+        
+        function renderHostTabs() {
+            hostTabs.innerHTML = Object.keys(allReports).map(host => `
+                <button class="host-tab ${host === currentHost ? 'active' : ''}" data-host="${host}">
+                    ${allReports[host].os?.includes('Windows') ? '🪟' : '🐧'} ${host}
+                </button>
+            `).join('');
+            
+            hostTabs.querySelectorAll('.host-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentHost = tab.dataset.host;
+                    renderDashboard();
+                });
+            });
+        }
+        
+        function renderSummary() {
+            const report = allReports[currentHost];
+            const summary = report.summary;
+            
+            document.getElementById('totalControls').textContent = summary.total;
+            document.getElementById('passedControls').textContent = summary.passed;
+            document.getElementById('failedControls').textContent = summary.failed;
+            document.getElementById('skippedControls').textContent = summary.skipped;
+            
+            const compliance = Math.round((summary.passed / (summary.total - summary.skipped)) * 100) || 0;
+            const meter = document.getElementById('complianceMeter');
+            meter.style.width = `${compliance}%`;
+            meter.textContent = `${compliance}%`;
+            meter.className = 'meter-fill ' + (compliance >= 90 ? 'high' : compliance >= 70 ? 'medium' : 'low');
+        }
+        
+        function renderResults() {
+            const report = allReports[currentHost];
+            const filtered = report.results.filter(r => {
+                if (currentFilter === 'all') return true;
+                return r.status === currentFilter;
+            });
+            
+            resultsBody.innerHTML = filtered.map(r => `
+                <tr>
+                    <td><strong>${r.id}</strong></td>
+                    <td>${r.title}</td>
+                    <td><span class="status-badge ${r.status}">${r.status.toUpperCase()}</span></td>
+                    <td>${r.expected}</td>
+                    <td>${r.actual}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+---
+title: Deployment & Hardening Workflow
+---
+flowchart LR
+    subgraph Phase1["1️⃣ Infrastructure Setup"]
+        A1["az login"] --> A2["terraform init"]
+        A2 --> A3["terraform apply"]
+        A3 --> A4["VMs Created +<br/>inventory.ini generated"]
+    end
+
+    subgraph Phase2["2️⃣ Ansible Setup"]
+        B1["docker compose build"] --> B2["setup.cmd"]
+        B2 --> B3["Roles downloaded<br/>to ./roles/"]
+    end
+
+    subgraph Phase3["3️⃣ Configure Controls"]
+        C1["Edit group_vars/<br/>linux.yml"] 
+        C2["Edit group_vars/<br/>windows.yml"]
+        C1 --> C3["Set rules to<br/>true/false"]
+        C2 --> C3
+    end
+
+    subgraph Phase4["4️⃣ Harden Systems"]
+        D1["ansible playbook<br/>--check --diff"] --> D2{"Review<br/>Changes?"}
+        D2 -->|"OK"| D3["ansible playbook<br/>cis-hardening-all.yml"]
+        D2 -->|"Adjust"| C3
+        D3 --> D4["✅ Systems Hardened"]
+    end
+
+    Phase1 --> Phase2
+    Phase2 --> Phase3
+    Phase3 --> Phase4
+
+    style Phase1 fill:#e6f3ff
+    style Phase2 fill:#fff3e6
+    style Phase3 fill:#e6ffe6
+    style Phase4 fill:#ffe6e6

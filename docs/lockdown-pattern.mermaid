@@ -1,0 +1,45 @@
+---
+title: Ansible Lockdown Control Pattern
+---
+flowchart TB
+    subgraph GroupVars["📝 group_vars/linux.yml"]
+        V1["ubtu22cis_rule_3_3_1: true"]
+        V2["ubtu22cis_rule_3_3_2: true"]
+        V3["ubtu22cis_rule_3_3_3: false"]
+        V4["ubtu22cis_section1: false"]
+    end
+
+    subgraph Playbook["📋 cis-hardening-linux.yml"]
+        PB["- role: ubuntu22_cis"]
+    end
+
+    subgraph Role["📦 roles/ubuntu22_cis/"]
+        subgraph Tasks["tasks/"]
+            T1["section3.yml"]
+            T2["rule_3_3_1.yml"]
+            T3["rule_3_3_2.yml"]
+            T4["rule_3_3_3.yml"]
+        end
+        subgraph Defaults["defaults/main.yml"]
+            D1["ubtu22cis_rule_3_3_1: true<br/>(default values)"]
+        end
+    end
+
+    subgraph Target["🐧 Ubuntu VM"]
+        S1["✅ 3.3.1 Applied"]
+        S2["✅ 3.3.2 Applied"]
+        S3["⏭️ 3.3.3 Skipped"]
+    end
+
+    GroupVars -->|"overrides defaults"| Defaults
+    Playbook -->|"calls"| Role
+    V1 -->|"when: ubtu22cis_rule_3_3_1"| T2
+    V2 -->|"when: ubtu22cis_rule_3_3_2"| T3
+    V3 -->|"when: false → skip"| T4
+    T2 --> S1
+    T3 --> S2
+    T4 -.->|"skipped"| S3
+
+    style GroupVars fill:#ffe6cc
+    style Role fill:#dae8fc
+    style Target fill:#d5e8d4

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure + Ansible CIS Hardening - Workflow Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --accent-secondary: #533483;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--accent-secondary));
+            margin-bottom: 3rem;
+            border-radius: 0 0 2rem 2rem;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        header p { color: var(--text-secondary); font-size: 1.1rem; }
+        .diagram-section {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .diagram-section h2 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-secondary);
+        }
+        .diagram-section > p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .mermaid {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        .quick-ref {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .quick-ref-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--accent);
+        }
+        .quick-ref-card h3 { color: var(--accent); margin-bottom: 0.5rem; }
+        .quick-ref-card code {
+            background: var(--bg-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: Consolas, monospace;
+            display: block;
+            margin-top: 0.5rem;
+        }
+        footer { text-align: center; padding: 2rem; color: var(--text-secondary); margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🔒 Azure + Ansible CIS Hardening</h1>
+            <p>Infrastructure as Code workflow for deploying and hardening Linux and Windows VMs</p>
+        </div>
+    </header>
+    <div class="container">
+        <section class="diagram-section">
+            <h2>1. Architecture Overview</h2>
+            <p>High-level view of the infrastructure: Windows workstation running Docker/Ansible connecting to Azure VMs.</p>
+            <div class="mermaid">
+flowchart TB
+    subgraph LOCAL["🖥️ Windows Workstation"]
+        TF[("Terraform")]
+        DC["Docker Container<br/>Ansible + Collections"]
+        FILES["Project Files"]
+    end
+    subgraph AZURE["☁️ Azure Cloud"]
+        subgraph RG["Resource Group"]
+            LINUX["🐧 Ubuntu 22.04<br/>SSH :22"]
+            WIN["🪟 Windows 2022<br/>WinRM :5985"]
+        end
+    end
+    TF -->|"terraform apply"| RG
+    TF -->|"generates"| FILES
+    DC -->|"SSH"| LINUX
+    DC -->|"WinRM"| WIN
+    FILES -->|"mounted"| DC
+            </div>
+        </section>
+        <section class="diagram-section">
+            <h2>2. Deployment Workflow</h2>
+            <p>Step-by-step process from initial setup to applying CIS hardening.</p>
+            <div class="mermaid">
+flowchart LR
+    subgraph SETUP["1️⃣ Setup"]
+        A1["Clone Project"] --> A2["Configure tfvars"]
+        A2 --> A3["docker compose build"]
+    end
+    subgraph INFRA["2️⃣ Infrastructure"]
+        B1["terraform init"] --> B2["terraform apply"]
+        B2 --> B3["VMs + inventory.ini"]
+    end
+    subgraph ANSIBLE["3️⃣ Ansible"]
+        C1["setup.cmd"] --> C2["Download Roles"]
+    end
+    subgraph HARDEN["4️⃣ Hardening"]
+        D1["Edit group_vars"] --> D2["--check --diff"]
+        D2 --> D3["Apply"]
+    end
+    SETUP --> INFRA --> ANSIBLE --> HARDEN
+            </div>
+        </section>
+        <section class="diagram-section">
+            <h2>3. CIS Hardening Flow</h2>
+            <p>How group_vars control which CIS rules are applied via Ansible Lockdown roles.</p>
+            <div class="mermaid">
+flowchart TB
+    subgraph CONTROLS["📋 Control Selection"]
+        GV_L["group_vars/linux.yml"]
+        GV_W["group_vars/windows.yml"]
+    end
+    subgraph PLAYBOOKS["📄 Playbooks"]
+        PB_A["cis-hardening-all.yml"]
+    end
+    subgraph ROLES["🔧 Ansible Lockdown"]
+        R_L["ubuntu22_cis"]
+        R_W["win2022_cis"]
+    end
+    subgraph TARGETS["🎯 Targets"]
+        T_L["🐧 Linux VM"]
+        T_W["🪟 Windows VM"]
+    end
+    GV_L & GV_W --> PB_A
+    PB_A --> R_L & R_W
+    R_L --> T_L
+    R_W --> T_W
+            </div>
+        </section>
+        <section class="diagram-section">
+            <h2>4. Docker Container Architecture</h2>
+            <p>How the Ansible container connects to target VMs.</p>
+            <div class="mermaid">
+flowchart LR
+    subgraph HOST["🖥️ Windows"]
+        CMD["ansible.cmd"]
+        SSH["~/.ssh/"]
+        PROJ["Project Dir"]
+    end
+    subgraph DOCKER["🐳 Container"]
+        ENT["entrypoint.sh"]
+        ANS["Ansible"]
+    end
+    subgraph VMS["🎯 VMs"]
+        LIN["🐧 :22"]
+        WIN["🪟 :5985"]
+    end
+    CMD --> DOCKER
+    SSH -.-> ENT
+    PROJ -.-> ANS
+    ANS --> LIN & WIN
+            </div>
+        </section>
+        <section class="diagram-section">
+            <h2>5. Project Structure</h2>
+            <div class="mermaid">
+flowchart TB
+    subgraph P["📁 azure-vms/"]
+        subgraph TF["Terraform"]
+            T1["main.tf"]
+            T2["terraform.tfvars"]
+        end
+        subgraph D["Docker"]
+            D1["Dockerfile"]
+            D2["docker-compose.yml"]
+        end
+        subgraph A["Ansible"]
+            A1["ansible.cfg"]
+            A2["requirements.yml"]
+        end
+        subgraph G["group_vars/"]
+            G1["linux.yml"]
+            G2["windows.yml"]
+        end
+        subgraph PB["Playbooks"]
+            P1["cis-hardening-*.yml"]
+        end
+        subgraph R["roles/"]
+            R1["ubuntu22_cis/"]
+            R2["win2022_cis/"]
+        end
+    end
+    A2 --> R
+    G --> PB --> R
+            </div>
+        </section>
+        <section class="diagram-section">
+            <h2>📚 Quick Reference Commands</h2>
+            <div class="quick-ref">
+                <div class="quick-ref-card">
+                    <h3>🏗️ Deploy Infrastructure</h3>
+                    <code>terraform init</code>
+                    <code>terraform apply</code>
+                </div>
+                <div class="quick-ref-card">
+                    <h3>📦 Setup Ansible Roles</h3>
+                    <code>.\setup.cmd</code>
+                </div>
+                <div class="quick-ref-card">
+                    <h3>🔍 Dry Run</h3>
+                    <code>.\ansible.cmd playbook cis-hardening-all.yml --check --diff</code>
+                </div>
+                <div class="quick-ref-card">
+                    <h3>🚀 Apply Hardening</h3>
+                    <code>.\ansible.cmd playbook cis-hardening-all.yml</code>
+                </div>
+                <div class="quick-ref-card">
+                    <h3>🐧 Linux Only</h3>
+                    <code>.\ansible.cmd playbook cis-hardening-linux.yml</code>
+                </div>
+                <div class="quick-ref-card">
+                    <h3>🪟 Windows Only</h3>
+                    <code>.\ansible.cmd playbook cis-hardening-windows.yml</code>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer><p>Azure + Terraform + Ansible CIS Hardening Workflow</p></footer>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#0f3460',
+                primaryTextColor: '#eaeaea',
+                primaryBorderColor: '#533483',
+                lineColor: '#e94560',
+                secondaryColor: '#16213e',
+                tertiaryColor: '#1a1a2e'
+            }
+        });
+    </script>
+</body>
+</html>
